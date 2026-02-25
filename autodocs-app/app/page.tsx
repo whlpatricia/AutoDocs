@@ -1,65 +1,112 @@
-import Image from "next/image";
+"use client"
+import { Sidebar } from '@/app/components/Sidebar';
+import { UploadTile } from '@/app/components/UploadTile';
+import { SessionTile } from '@/app/components/SessionTile';
+import { SessionDetailModal } from '@/app/components/SessionDetailModal';
+import { useState } from 'react';
 
-export default function Home() {
+// Mock session data
+const mockSessions = [
+  {
+    id: '1',
+    title: 'Database Migration Script',
+    date: 'January 28, 2026',
+    duration: '15m 32s',
+    preview: '$ npm run migrate\n> Running migrations...\n✓ Successfully migrated'
+  },
+  {
+    id: '2',
+    title: 'API Server Setup',
+    date: 'January 27, 2026',
+    duration: '8m 45s',
+    preview: '$ npm start\n> Server running on port 3000\n> Ready to accept connections'
+  },
+  {
+    id: '3',
+    title: 'Docker Container Build',
+    date: 'January 26, 2026',
+    duration: '22m 18s',
+    preview: '$ docker build -t myapp .\n> Building image...\n✓ Successfully built'
+  },
+  {
+    id: '4',
+    title: 'Git Repository Setup',
+    date: 'January 25, 2026',
+    duration: '5m 12s',
+    preview: '$ git init\n$ git add .\n$ git commit -m "Initial commit"'
+  },
+  {
+    id: '5',
+    title: 'Package Installation',
+    date: 'January 24, 2026',
+    duration: '12m 03s',
+    preview: '$ npm install\n> Installing dependencies...\n✓ All packages installed'
+  },
+  {
+    id: '6',
+    title: 'Unit Test Execution',
+    date: 'January 23, 2026',
+    duration: '3m 47s',
+    preview: '$ npm test\n> Running tests...\n✓ 42 tests passed'
+  }
+];
+
+export default function App() {
+  const [selectedSession, setSelectedSession] = useState<typeof mockSessions[0] | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSessionClick = (session: typeof mockSessions[0]) => {
+    setSelectedSession(session);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSession(null);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <Sidebar />
+      
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="p-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-foreground mb-2">Terminal Sessions</h1>
+            <p className="text-muted-foreground">
+              Upload and manage your terminal session recordings
+            </p>
+          </div>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Upload Tile - Always first */}
+            <UploadTile />
+            
+            {/* Session Tiles */}
+            {mockSessions.map((session) => (
+              <SessionTile
+                key={session.id}
+                title={session.title}
+                date={session.date}
+                duration={session.duration}
+                preview={session.preview}
+                onClick={() => handleSessionClick(session)}
+              />
+            ))}
+          </div>
         </div>
       </main>
+
+      {/* Session Detail Modal */}
+      <SessionDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        session={selectedSession}
+      />
     </div>
   );
 }
