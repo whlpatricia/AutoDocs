@@ -1,48 +1,61 @@
 import xml.etree.ElementTree as ET
 import os
 
-def extract_event_boundaries(annotation_path, xml_path):
-    # Check if files exist to avoid the FileNotFoundError
-    if not os.path.exists(xml_path):
-        print(f"Error: XML file '{xml_path}' not found.")
-        return
-    if not os.path.exists(annotation_path):
-        print(f"Error: Annotation file '{annotation_path}' not found.")
+def extract_event_timestamps(parsed_dir="parsed_inputs", result_dir="timestamp-output"):
+    os.makedirs(result_dir, exist_ok=True)
+    
+    if not os.path.exists(parsed_dir):
+        print(f"Error: The folder '{parsed_dir}' does not exist.")
         return
 
-    # Parse the XML to get all terminal events with a timestamp
-    tree = ET.parse(xml_path)
-    root = tree.getroot()
-    
-    # Extract all elements that have a timestamp attribute
-    # These represent the 'lines' that the annotation indices point to
-    events = root.findall('.//*[@timestamp]')
-    
-    with open(annotation_path, 'r') as f:
-        # Read lines and strip whitespace
-        indices = [line.strip() for line in f if line.strip()]
+    parsed_files = [f for f in os.listdir(parsed_dir) if f.endswith('.xml')]
+    print(f"Found {len(parsed_files)} files in '{parsed_dir}'. Extracting boundaries...")
 
-    print(f"{'Index Val':<10} | {'Timestamp':<15} | {'Event ID'}")
-    print("-" * 45)
+    processed_count = 0
 
-    # We iterate through the indices provided in the annotation file
-    for i, index_val in enumerate(indices):
-        # Match the index in the text file to the corresponding event in the XML
-        if i < len(events):
-            timestamp = events[i].get('timestamp')
+    for xml_filename in parsed_files:
+        xml_path = os.path.join(parsed_dir, xml_filename)
+        
+        base_name = xml_filename.replace('_parsed.xml', '').replace('.xml', '')
+        out_filename = f"{base_name}.time.txt"
+        out_path = os.path.join(result_dir, out_filename)
+        
+        extracted_count = 0
+        
+        try:
+            with open(out_path, 'w') as out_f:
+                context = ET.iterparse(xml_path, events=('start',))
+                looking_for_timestamp = False
+                
+                # We put the iteration inside its own try/except block
+                # to catch incomplete XML files gracefully.
+                try:
+                    for event_type, elem in context:
+                        if elem.tag == 'event':
+                            looking_for_timestamp = True
+                        
+                        elif looking_for_timestamp:
+                            ts = elem.get('timestamp')
+                            if ts:
+                                out_f.write(f"{ts}\n")
+                                extracted_count += 1
+                                looking_for_timestamp = False
+                        
+                        elem.clear()
+                        
+                except ET.ParseError as pe:
+                    # The script hits the end of an incomplete file, catches the error,
+                    # and keeps the timestamps it already successfully extracted.
+                    print(f"    [!] Note: '{xml_filename}' ended abruptly ({pe}). Recovered {extracted_count} timestamps.")
             
-            # According to your Model 0 data rules, a '0' marks the start/end of a chunk
-            if index_val == '0':
-                print(f"BOUNDARY -> {timestamp} (Event #{i})")
-        else:
-            # Safety check if annotation file is longer than XML events
-            break
+            print(f"  > Success: Extracted {extracted_count} timestamps into '{out_filename}'")
+            processed_count += 1
             
-    print("\nProcessing complete.")
+        except Exception as e:
+            # Catches other non-parsing errors (like permission issues)
+            print(f"  ! Error processing '{xml_filename}': {e}")
 
-# Updated configuration to match your uploaded filenames
-input_file = "rene.annotated1.xml.txt"
-output_mapping = "renee_rec1.cast.xml"
+    print(f"\nExtraction complete! Processed {processed_count} files.")
 
 if __name__ == "__main__":
-    extract_event_boundaries(input_file, output_mapping)
+    extract_event_timestamps()
