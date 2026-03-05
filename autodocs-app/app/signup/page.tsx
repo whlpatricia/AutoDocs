@@ -124,20 +124,10 @@ export default function SignupPage() {
           animationDelay: '0.1s',
         }}
       >
-        {/* Terminal chrome bar */}
-        <div
-          className="flex items-center gap-2 px-4 py-3 rounded-t-xl"
-          style={{ background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-        >
-          <span className="w-3 h-3 rounded-full bg-red-500 opacity-70" />
-          <span className="w-3 h-3 rounded-full bg-yellow-500 opacity-70" />
-          <span className="w-3 h-3 rounded-full bg-green-500 opacity-70" />
-          <span className="ml-2 text-xs font-mono text-muted-foreground tracking-widest">auth — signup</span>
-        </div>
 
         {/* Card body */}
         <div
-          className="px-8 py-8 rounded-b-xl"
+          className="px-8 py-8 rounded-xl"
           style={{
             background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)',
@@ -146,15 +136,13 @@ export default function SignupPage() {
           }}
         >
           <div className="mb-7">
-            <p className="font-mono text-xs text-muted-foreground mb-1">$ auth --mode signup</p>
             <h1 className="text-foreground text-2xl font-semibold tracking-tight">Create account</h1>
-            <p className="text-muted-foreground text-sm mt-1">Start managing your terminal sessions.</p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="flex flex-col gap-4">
               <label className="flex flex-col gap-1.5">
-                <span className="font-mono text-xs text-muted-foreground">display name</span>
+                <span className="font-mono text-xs text-muted-foreground">Display name</span>
                 <input
                   ref={inputRef}
                   type="text"
@@ -168,7 +156,7 @@ export default function SignupPage() {
               </label>
 
               <label className="flex flex-col gap-1.5">
-                <span className="font-mono text-xs text-muted-foreground">email</span>
+                <span className="font-mono text-xs text-muted-foreground">Email</span>
                 <input
                   type="email"
                   autoComplete="email"
@@ -181,7 +169,7 @@ export default function SignupPage() {
               </label>
 
               <label className="flex flex-col gap-1.5">
-                <span className="font-mono text-xs text-muted-foreground">password</span>
+                <span className="font-mono text-xs text-muted-foreground">Password</span>
                 <input
                   type="password"
                   autoComplete="new-password"
@@ -194,7 +182,7 @@ export default function SignupPage() {
               </label>
 
               <label className="flex flex-col gap-1.5">
-                <span className="font-mono text-xs text-muted-foreground">confirm password</span>
+                <span className="font-mono text-xs text-muted-foreground">Confirm Password</span>
                 <input
                   type="password"
                   autoComplete="new-password"
