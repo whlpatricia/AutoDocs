@@ -9,7 +9,7 @@ interface SharedRow {
   content: string;
   created_at: string;
   shared_at: string | null;
-  shared_by_user_id: string | null;
+  // shared_by_user_id: string | null;
   owner_id: string;
   owner_name: string;
   owner_email: string;
@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
     const result = await db.query<SharedRow>(
             `SELECT ts.id, ts.title, ts.duration_seconds, ts.content, ts.created_at,
               viewer_access.shared_at,
-              viewer_access.shared_by_user_id,
               owner_user.id AS owner_id,
               owner_user.name AS owner_name,
               owner_user.email AS owner_email
@@ -43,7 +42,7 @@ export async function GET(request: NextRequest) {
       [user.id],
     );
 
-    return NextResponse.json({ sessions: result.rows });
+    return NextResponse.json({ terminalSessions : result.rows });
   } catch {
     return NextResponse.json({ message: 'Failed to fetch shared sessions.' }, { status: 500 });
   }

@@ -24,5 +24,3 @@ CREATE INDEX IF NOT EXISTS terminal_session_access_user_owner_idx
 
 CREATE INDEX IF NOT EXISTS terminal_sessions_created_at_idx
   ON terminal_sessions(created_at DESC);
-
-INSERT INTO 
