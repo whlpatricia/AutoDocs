@@ -3,7 +3,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 ## Local Postgres Setup
 
 The project includes a Docker Postgres service and init SQL scripts at `db/init/001_init.sql` and `db/init/002_sessions.sql`.
-On first startup of a fresh DB volume, Postgres automatically creates the `users` and `sessions` tables.
+On first startup of a fresh DB volume, Postgres automatically creates the `users` and `sessions` tables, and a user with email `hello@example.com` and password `12345678` in `users`.
 
 ```bash
 npm run db:up
