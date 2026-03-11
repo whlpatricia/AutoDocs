@@ -5,14 +5,14 @@ import { getRequestUser } from '@/app/lib/server/request-auth';
 interface SharedRow {
   id: string;
   title: string;
-  duration_seconds: number;
+  durationSeconds: number;
   content: string;
-  created_at: string;
-  shared_at: string | null;
+  createdAt: string;
+  sharedAt: string | null;
   // shared_by_user_id: string | null;
-  owner_id: string;
-  owner_name: string;
-  owner_email: string;
+  ownerId: string;
+  ownerName: string;
+  ownerEmail: string;
 }
 
 export async function GET(request: NextRequest) {
@@ -23,11 +23,15 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await db.query<SharedRow>(
-            `SELECT ts.id, ts.title, ts.duration_seconds, ts.content, ts.created_at,
-              viewer_access.shared_at,
-              owner_user.id AS owner_id,
-              owner_user.name AS owner_name,
-              owner_user.email AS owner_email
+      `SELECT ts.id,
+              ts.title,
+              ts.duration_seconds AS "durationSeconds",
+              ts.content,
+              ts.created_at AS "createdAt",
+              viewer_access.shared_at AS "sharedAt",
+              owner_user.id AS "ownerId",
+              owner_user.name AS "ownerName",
+              owner_user.email AS "ownerEmail"
        FROM terminal_sessions ts
        INNER JOIN terminal_session_access viewer_access
          ON viewer_access.terminal_session_id = ts.id
@@ -42,7 +46,7 @@ export async function GET(request: NextRequest) {
       [user.id],
     );
 
-    return NextResponse.json({ terminalSessions : result.rows });
+    return NextResponse.json({ terminalSessions: result.rows });
   } catch {
     return NextResponse.json({ message: 'Failed to fetch shared sessions.' }, { status: 500 });
   }

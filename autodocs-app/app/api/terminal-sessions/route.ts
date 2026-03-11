@@ -4,16 +4,16 @@ import { getRequestUser } from '@/app/lib/server/request-auth';
 
 interface TerminalSessionBody {
   title?: string;
-  duration_seconds?: number;
+  durationSeconds?: number;
   content?: string;
 }
 
 interface TerminalSessionRow {
   id: string;
   title: string;
-  duration_seconds: number;
+  durationSeconds: number;
   content: string;
-  created_at: string;
+  createdAt: string;
 }
 
 export async function GET(request: NextRequest) {
@@ -24,7 +24,11 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await db.query<TerminalSessionRow>(
-      `SELECT ts.id, ts.title, ts.duration_seconds, ts.content, ts.created_at
+      `SELECT ts.id,
+              ts.title,
+              ts.duration_seconds AS "durationSeconds",
+              ts.content,
+              ts.created_at AS "createdAt"
        FROM terminal_sessions ts
        INNER JOIN terminal_session_access tsa
          ON tsa.terminal_session_id = ts.id
@@ -50,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     const body = (await request.json()) as TerminalSessionBody;
     const title = body.title?.trim();
-    const durationSeconds = body.duration_seconds;
+    const durationSeconds = body.durationSeconds;
     const content = body.content?.trim();
 
     if (!title) {
@@ -74,7 +78,11 @@ export async function POST(request: NextRequest) {
     const sessionInsert = await db.query<TerminalSessionRow>(
       `INSERT INTO terminal_sessions (title, duration_seconds, content)
        VALUES ($1, $2, $3)
-       RETURNING id, title, duration_seconds, content, created_at`,
+       RETURNING id,
+                 title,
+                 duration_seconds AS "durationSeconds",
+                 content,
+                 created_at AS "createdAt"`,
       [title, durationSeconds, content],
     );
 
@@ -89,7 +97,7 @@ export async function POST(request: NextRequest) {
     await db.query('COMMIT');
     transactionStarted = false;
 
-    return NextResponse.json({ terminalSession: terminalSession }, { status: 201 });
+    return NextResponse.json({ terminalSession }, { status: 201 });
   } catch {
     if (transactionStarted) {
       await db.query('ROLLBACK');
