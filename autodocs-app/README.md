@@ -18,8 +18,8 @@ npm run db:reset
 Then verify:
 
 ```bash
-docker exec -it autodocs-postgres psql -U autodocs -d autodocs_db -c "\d users"
-docker exec -it autodocs-postgres psql -U autodocs -d autodocs_db -c "\d sessions"
+docker exec -it autodocs-postgres psql -U autodocs -d autodocs -c "\d users"
+docker exec -it autodocs-postgres psql -U autodocs -d autodocs -c "\d sessions"
 ```
 
 ## Auth Model
@@ -40,7 +40,7 @@ Server routes:
 Required env vars in `.env.local`:
 
 ```env
-DATABASE_URL="postgresql://autodocs:autodocs_pass@localhost:5432/autodocs_db"
+DATABASE_URL="postgresql://autodocs:autodocs@localhost:5432/autodocs_db"
 JWT_SECRET="paste-generated-value-here"
 ```
 
