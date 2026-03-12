@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
        ORDER BY ts.created_at DESC`,
       [user.id],
     );
-
     return NextResponse.json({ terminalSessions: result.rows });
-  } catch {
-    return NextResponse.json({ message: 'Failed to fetch sessions.' }, { status: 500 });
+  } catch (e){
+    console.log(e);
+    return NextResponse.json({ message: e}, { status: 500 });
   }
 }
 

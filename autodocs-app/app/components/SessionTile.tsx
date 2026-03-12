@@ -1,5 +1,7 @@
 import { Clock, FileText, GitBranch, CornerDownRight, LogOut } from 'lucide-react';
+import { useMemo } from 'react';
 import type { Session, SessionEvent } from '@/app/home/page';
+import { parseSessionContent } from '@/app/home/page';
 
 interface SessionTileProps {
   session: Session;
@@ -34,14 +36,15 @@ function EventDepthBadge({ depth }: { depth: number }) {
 export function SessionTile({ session, onClick }: SessionTileProps) {
   const { title, createdAt, duration, content } = session;
 
+  const events = useMemo(() => parseSessionContent(content), [content]);
+
   const eventCounts = {
-    independent: content.filter((e: SessionEvent) => e.depth === 0).length,
-    sub: content.filter((e: SessionEvent) => e.depth === -1).length,
-    exiting: content.filter((e: SessionEvent) => e.depth >= 1).length,
+    independent: events.filter((e: SessionEvent) => e.depth === 0).length,
+    sub: events.filter((e: SessionEvent) => e.depth === -1).length,
+    exiting: events.filter((e: SessionEvent) => e.depth >= 1).length,
   };
 
-  // Show first 3 events as preview
-  const previewEvents = content.slice(0, 3);
+  const previewEvents = events.slice(0, 3);
 
   return (
     <div
@@ -65,7 +68,7 @@ export function SessionTile({ session, onClick }: SessionTileProps) {
 
       {/* Event stats */}
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-xs text-muted-foreground font-mono">{content.length} events</span>
+        <span className="text-xs text-muted-foreground font-mono">{events.length} events</span>
         <span className="text-border">·</span>
         <span className="text-xs text-emerald-400 font-mono">{eventCounts.independent} top-level</span>
         <span className="text-border">·</span>
@@ -84,9 +87,9 @@ export function SessionTile({ session, onClick }: SessionTileProps) {
             </p>
           </div>
         ))}
-        {content.length > 3 && (
+        {events.length > 3 && (
           <p className="text-xs text-muted-foreground/50 font-mono pt-1">
-            +{content.length - 3} more events...
+            +{events.length - 3} more events...
           </p>
         )}
       </div>

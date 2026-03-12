@@ -1,6 +1,7 @@
 import { X, Download, Share2, Trash2, GitBranch, CornerDownRight, LogOut, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { Session, SessionEvent } from '@/app/home/page';
+import { parseSessionContent } from '@/app/home/page';
 
 interface SessionDetailModalProps {
   isOpen: boolean;
@@ -30,15 +31,12 @@ function buildTree(events: SessionEvent[]): TreeNode[] {
     const node: TreeNode = { event, index, children: [] };
 
     if (event.depth === -1) {
-      // Attach as child of the most recent top-level node
       if (lastTopLevel) {
         lastTopLevel.children.push(node);
       } else {
-        // No parent yet — treat as root
         roots.push(node);
       }
     } else {
-      // depth 0 or >=1 → always a root node
       roots.push(node);
       lastTopLevel = node;
     }
@@ -77,12 +75,10 @@ function EventNode({ node, defaultOpen = true }: { node: TreeNode; defaultOpen?:
 
   return (
     <div className="relative">
-      {/* Main event row */}
       <div
         className={`flex items-start gap-3 rounded-lg border px-4 py-3 transition-colors ${depthColorClass(node.event.depth)} ${hasChildren ? 'cursor-pointer hover:bg-accent/10' : ''}`}
         onClick={hasChildren ? () => setOpen((o) => !o) : undefined}
       >
-        {/* Expand toggle */}
         {hasChildren ? (
           <ChevronRight
             className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-muted-foreground transition-transform duration-150 ${open ? 'rotate-90' : ''}`}
@@ -113,11 +109,9 @@ function EventNode({ node, defaultOpen = true }: { node: TreeNode; defaultOpen?:
         </div>
       </div>
 
-      {/* Children */}
       {hasChildren && open && (
         <div className="ml-6 mt-1 space-y-1 relative">
-          {/* Vertical connector line */}
-          <div className="absolute left-0 top-0 bottom-0 w-px bg-border/60" style={{ left: '-12px' }} />
+          <div className="absolute top-0 bottom-0 w-px bg-border/60" style={{ left: '-12px' }} />
           {node.children.map((child) => (
             <EventNode key={child.index} node={child} defaultOpen={true} />
           ))}
@@ -128,15 +122,19 @@ function EventNode({ node, defaultOpen = true }: { node: TreeNode; defaultOpen?:
 }
 
 export function SessionDetailModal({ isOpen, onClose, session }: SessionDetailModalProps) {
+  const events = useMemo(
+    () => (session ? parseSessionContent(session.content) : []),
+    [session]
+  );
+  const tree = useMemo(() => buildTree(events), [events]);
+
   if (!isOpen || !session) return null;
 
-  const tree = buildTree(session.content);
-
   const eventCounts = {
-    total: session.content.length,
-    independent: session.content.filter((e) => e.depth === 0).length,
-    sub: session.content.filter((e) => e.depth === -1).length,
-    exiting: session.content.filter((e) => e.depth >= 1).length,
+    total: events.length,
+    independent: events.filter((e) => e.depth === 0).length,
+    sub: events.filter((e) => e.depth === -1).length,
+    exiting: events.filter((e) => e.depth >= 1).length,
   };
 
   return (

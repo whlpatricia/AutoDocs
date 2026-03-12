@@ -12,53 +12,82 @@ export interface SessionEvent {
   depth: number; // -1 = subevent, 0 = independent, >=1 = exiting
 }
 
+// Shape returned by the API
+export interface ApiSession {
+  id: string;
+  title: string;
+  durationSeconds: number;
+  content: string; // raw .txt file content
+  createdAt: string;
+}
+
+// Shape used internally / passed to components
 export interface Session {
   id: string;
   title: string;
-  duration: string;
+  duration: string; // formatted, e.g. "42m 17s"
+  content: string;  // raw .txt file content
   createdAt: string;
-  content: SessionEvent[];
 }
 
-// Mock session data
-const mockSessions: Session[] = [
-  {
-    id: '1',
-    title: 'FAI CD Build & HWPHYS RAID Config',
-    duration: '42m 17s',
-    createdAt: 'January 28, 2026',
-    content: [
-      { label: 'Connect from stephost to remote server over SSH.', depth: 0 },
-      { label: 'Change to /home/fai and list its contents.', depth: 0 },
-      { label: 'Change into the config directory and list its subdirectories.', depth: 0 },
-      { label: 'Change into the disk_config directory and list its files.', depth: 0 },
-      { label: 'Open HWPHYS disk configuration file in Emacs for inspection.', depth: -1 },
-      { label: 'Reopen HWPHYS disk configuration file in Emacs using sudo for elevated access.', depth: -1 },
-      { label: 'Review and edit HWPHYS disk configuration file in Emacs.', depth: 0 },
-      { label: "Navigate within Emacs HWPHYS disk configuration, editing fields around ':missing' raid entries.", depth: 0 },
-      { label: "Run 'sudo git diff' in disk_config directory to review recent HWPHYS RAID configuration changes.", depth: 0 },
-      { label: "Compose a 'sudo git commit -am' command using shell history and navigation keys, preparing to commit HWPHYS changes.", depth: 0 },
-      { label: 'Open the HWPHYS disk configuration file in Emacs, navigate through it, mark the buffer as modified, then write and save a detailed problem description about systems with two disks before returning to the shell.', depth: -1 },
-      { label: 'Run a git commit with a detailed message explaining that the hardened disk configuration now requires 25 disks in the wrong order before causing trouble.', depth: 0 },
-      { label: 'Change directory two levels up in the filesystem.', depth: 0 },
-      { label: 'Search shell history for the previous timed make-fai-cd build command.', depth: 0 },
-      { label: 'Run sudo creation command that debootstraps and configures a Debian base system with required core packages.', depth: 0 },
-      { label: 'Create and configure a Debian base system with debootstrap.', depth: 0 },
-      { label: 'Install and configure FAI NFSROOT, downloading and setting up many Debian packages inside /srv/fai/nfsroot.', depth: 0 },
-      { label: 'Build a bootable FAI CD ISO image by copying configuration and mirror data, creating a SquashFS filesystem, formatting with FAT, and writing fai_cd.iso.', depth: 0 },
-      { label: 'Log out from the remote shell session and close the SSH connection.', depth: 1 },
-      { label: 'Copy fai_cd.iso from remote host 172.16.0.17 to a local ISO file using scp, watching transfer complete.', depth: 0 },
-      { label: 'Exit the interactive shell session on stephost.', depth: 1 },
-    ]
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m < 60) return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem > 0 ? `${h}h ${rem}m` : `${h}h`;
+}
+
+function formatDate(isoString: string): string {
+  return new Date(isoString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+/** Parse raw .txt content into structured SessionEvent[]. */
+export function parseSessionContent(raw: string): SessionEvent[] {
+  const lines = raw.split('\n');
+  const events: SessionEvent[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const label = lines[i].trim();
+    if (!label) { i++; continue; }
+
+    // Next non-empty line should be the depth value
+    let j = i + 1;
+    while (j < lines.length && lines[j].trim() === '') j++;
+
+    if (j < lines.length) {
+      const depthVal = parseInt(lines[j].trim(), 10);
+      if (!isNaN(depthVal)) {
+        events.push({ label, depth: depthVal });
+        i = j + 1;
+        continue;
+      }
+    }
+
+    // No depth line found — skip this line
+    i++;
   }
-];
+
+  return events;
+}
 
 export default function App() {
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [sessionsError, setSessionsError] = useState<string | null>(null);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Auth check
   useEffect(() => {
     const run = async () => {
       const user = await getSessionUser();
@@ -70,6 +99,39 @@ export default function App() {
     };
     void run();
   }, [router]);
+
+  const fetchSessions = async () => {
+    setLoadingSessions(true);
+    setSessionsError(null);
+    try {
+      const res = await fetch('/api/terminal-sessions');
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message ?? `Request failed with status ${res.status}`);
+      }
+      const data = await res.json() as { terminalSessions: ApiSession[] };
+      setSessions(
+        data.terminalSessions.map((s) => ({
+          id: s.id,
+          title: s.title,
+          duration: formatDuration(s.durationSeconds),
+          content: s.content,
+          createdAt: formatDate(s.createdAt),
+        }))
+      );
+    } catch (err) {
+      setSessionsError(err instanceof Error ? err.message : 'Failed to load sessions.');
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  // Fetch sessions once auth is confirmed
+  useEffect(() => {
+    if (checkingAuth) return;
+
+    void fetchSessions();
+  }, [checkingAuth]);
 
   const handleSessionClick = (session: Session) => {
     setSelectedSession(session);
@@ -110,11 +172,37 @@ export default function App() {
 
           {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Upload Tile - Always first */}
-            <UploadTile />
+            {/* Upload Tile — always first */}
+            <UploadTile onUploadSuccess={fetchSessions}/>
+
+            {/* Loading skeleton */}
+            {loadingSessions &&
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-card rounded-xl border border-border p-6 animate-pulse">
+                  <div className="w-12 h-12 bg-muted rounded-lg mb-4" />
+                  <div className="h-4 bg-muted rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-muted rounded w-1/2 mb-4" />
+                  <div className="h-20 bg-muted rounded" />
+                </div>
+              ))
+            }
+
+            {/* Error state */}
+            {!loadingSessions && sessionsError && (
+              <div className="col-span-full text-sm text-destructive font-mono bg-destructive/10 rounded-lg p-4 border border-destructive/20">
+                {sessionsError}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!loadingSessions && !sessionsError && sessions.length === 0 && (
+              <div className="col-span-full text-sm text-muted-foreground font-mono p-4">
+                No sessions yet. Upload your first terminal session to get started.
+              </div>
+            )}
 
             {/* Session Tiles */}
-            {mockSessions.map((session) => (
+            {!loadingSessions && sessions.map((session) => (
               <SessionTile
                 key={session.id}
                 session={session}
