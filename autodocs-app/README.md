@@ -106,7 +106,7 @@ Server routes:
 Required env vars in `.env.local`:
 
 ```env
-DATABASE_URL="postgresql://autodocs:autodocs@localhost:5432/autodocs_db"
+DATABASE_URL="postgresql://autodocs:autodocs@localhost:5432/autodocs"
 JWT_SECRET="paste-generated-value-here"
 ```
 
