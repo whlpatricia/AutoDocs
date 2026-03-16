@@ -20,3 +20,9 @@ This repository contains the complete end-to-end pipeline for training and evalu
 
 * **`fine_tuned_model_0_inference(Streaming).ipynb`**
   This notebook demonstrates the performance of the final fine-tuned model. It features a side-by-side comparison with the baseline model, showcasing how the fine-tuned version significantly outperforms the original `Phi-4` model in detecting log boundaries on the evaluation set.
+
+* **`Model_1_inference.ipynb`** *(Refinement to Model 1 is required)*  
+  This notebook demonstrates the usage of Model 1 for event annotation. It takes a processed XML file where events are already labeled using event tags. Model 1 generates annotations and depth predictions for each event chunk. The prompts are directly adapted from the previous iteration, and the model is used without fine-tuning (same as in the previous iteration). The current model used is `openai/gpt-oss-20b`.
+
+* **`EndToEndProcessWhole_file.ipynb`**  
+  This notebook implements the full end-to-end pipeline. It takes a raw XML file as input, segments the file, and feeds it into Model 0 in a streaming manner. Each prediction is based on the previous 15 timestamps, and the model determines whether the current timestamp represents a new event boundary or belongs to an existing event. The prediction window then moves forward continuously. The predicted timestamp boundaries from Model 0 are collected and used to parse the input XML file into separate events by inserting event tags at the predicted boundaries. The event-tagged XML file is then passed to Model 1, which generates the annotation and depth prediction for each event.
