@@ -198,6 +198,20 @@ export default function App() {
     setSelectedSession(null);
   };
 
+  const handleDeleteSession = async (sessionId: string) => {
+    const res = await fetch(`/api/terminal-sessions/${encodeURIComponent(sessionId)}`, {
+      method: 'DELETE',
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message ?? `Request failed with status ${res.status}`);
+    }
+
+    setSessions((current) => current.filter((session) => session.id !== sessionId));
+    handleCloseModal();
+  };
+
   if (checkingAuth) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -293,6 +307,7 @@ export default function App() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         session={selectedSession}
+        onDeleteSession={handleDeleteSession}
       />
     </div>
   );

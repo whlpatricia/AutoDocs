@@ -1,5 +1,5 @@
 import { X, Download, Share2, Trash2, GitBranch, CornerDownRight, LogOut, ChevronRight, Loader2, CheckCircle, AlertCircle, UserPlus } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Session, SessionEvent } from '@/app/home/page';
 import { parseSessionContent } from '@/app/home/page';
 
@@ -7,6 +7,7 @@ interface SessionDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   session: Session | null;
+  onDeleteSession: (sessionId: string) => Promise<void>;
 }
 
 interface TreeNode {
@@ -207,14 +208,24 @@ function SharePanel({ sessionId }: { sessionId: string }) {
 
 // ── Main Modal ─────────────────────────────────────────────────────────────────
 
-export function SessionDetailModal({ isOpen, onClose, session }: SessionDetailModalProps) {
+export function SessionDetailModal({ isOpen, onClose, session, onDeleteSession }: SessionDetailModalProps) {
   const [showSharePanel, setShowSharePanel] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const events = useMemo(
     () => (session ? parseSessionContent(session.content) : []),
     [session]
   );
   const tree = useMemo(() => buildTree(events), [events]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowSharePanel(false);
+    }
+    setIsDeleting(false);
+    setDeleteError(null);
+  }, [isOpen, session?.id]);
 
   const handleClose = () => {
     setShowSharePanel(false);
@@ -231,6 +242,27 @@ export function SessionDetailModal({ isOpen, onClose, session }: SessionDetailMo
     independent: events.filter((e) => e.depth === 0).length,
     sub: events.filter((e) => e.depth === -1).length,
     exiting: events.filter((e) => e.depth >= 1).length,
+  };
+
+  const handleDelete = async () => {
+    if (isShared || isDeleting) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Delete "${session.title}"? This cannot be undone.`);
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await onDeleteSession(session.id);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete session.');
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -289,6 +321,12 @@ export function SessionDetailModal({ isOpen, onClose, session }: SessionDetailMo
           <SharePanel sessionId={session.id} />
         )}
 
+        {deleteError && (
+          <div className="px-6 py-3 border-t border-border bg-destructive/10 text-destructive text-sm font-mono">
+            {deleteError}
+          </div>
+        )}
+
         {/* Footer Actions */}
         <div className="flex items-center justify-between p-6 border-t border-border flex-shrink-0">
           <div className="flex gap-2">
@@ -312,10 +350,20 @@ export function SessionDetailModal({ isOpen, onClose, session }: SessionDetailMo
             )}
           </div>
 
-          <button className="px-4 py-2 bg-destructive/10 text-destructive rounded-lg hover:bg-destructive/20 transition-colors flex items-center gap-2">
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </button>
+          {!isShared && (
+            <button
+              onClick={() => void handleDelete()}
+              disabled={isDeleting}
+              className="px-4 py-2 bg-destructive/10 text-destructive rounded-lg hover:bg-destructive/20 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDeleting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </button>
+          )}
         </div>
 
       </div>
