@@ -45,5 +45,7 @@ If it is `false`, repeat **Step 4** and then **Step 5**.
 
 ## Notes
 **/generated_unlimited** contains the generated output without having a token limitation.
+
 **/generated_128** contains the generated output with a token limit of 128.
+
 Thinking tokens that are generated alongside incorrect output are recorded with a *discarded* tag on the top of the file.
