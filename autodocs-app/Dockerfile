@@ -11,6 +11,7 @@ RUN npm ci
 # --------- Builder ---------
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
+ENV DATABASE_URL="postgresql://johndoe:fakedbstring@localhost:5432/mydb"
 COPY . .
 RUN npm run build
 
