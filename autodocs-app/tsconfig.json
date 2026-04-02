@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "allowSyntheticDefaultImports": true,
     "plugins": [
       {
         "name": "next"
@@ -23,6 +24,7 @@
     }
   },
   "include": [
+    "types.d.ts",
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
