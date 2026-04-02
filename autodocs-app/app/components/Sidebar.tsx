@@ -1,6 +1,7 @@
 "use client";
 
-import { Home, Upload, Settings, User, LogOut, FileText } from 'lucide-react';
+import Image from 'next/image';
+import { Home, Settings, User, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { logoutSession } from '@/app/lib/auth';
 
@@ -32,11 +33,9 @@ export function Sidebar({ activeView = 'sessions' }: SidebarProps) {
       {/* Logo/Header */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <FileText className="w-6 h-6 text-primary-foreground" />
-          </div>
+          <Image src="/logo.svg" alt="AutoDocs" width={64} height={64} className="h-16 w-16 shrink-0" />
           <div>
-            <h2 className="text-sidebar-foreground">TerminalDocs</h2>
+            <h2 className="text-sidebar-foreground">AutoDocs</h2>
             <p className="text-xs text-muted-foreground">Session Manager</p>
           </div>
         </div>
@@ -51,13 +50,6 @@ export function Sidebar({ activeView = 'sessions' }: SidebarProps) {
           >
             <Home className="w-5 h-5" />
             <span>Sessions</span>
-          </button>
-          <button
-            onClick={() => router.push('/home')}
-            className={getNavItemClasses(activeView === 'sessions')}
-          >
-            <Upload className="w-5 h-5" />
-            <span>Upload New</span>
           </button>
         </div>
       </nav>
