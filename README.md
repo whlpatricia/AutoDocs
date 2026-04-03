@@ -6,8 +6,7 @@ Access our hosted webapp [here](https://autodocs-production.up.railway.app) or w
 *Note that the generation feature may not work fully as the models are not hosted due to usage limits.
 
 ## Architecture
-Our webapp is built on **Next.js** with a **PostgreSQL** database. [Our model pipeline](https://github.com/CSC392-CSC492-Building-AI-ML-systems/AutoDocs-Winter2026/blob/main/host_pipeline.ipyn
-b) is currently hosted using Colab Pro and exposed to the backend using an Ngrok tunnel.
+Our webapp is built on **Next.js** with a **PostgreSQL** database. [Our model pipeline](https://github.com/CSC392-CSC492-Building-AI-ML-systems/AutoDocs-Winter2026/blob/main/host_pipeline.ipynb) is currently hosted using Google Colab Pro and exposed to the backend using an Ngrok tunnel.
 <img width="1176" height="611" alt="{B8429BF9-6917-4791-A6F2-37BBD3A316B2}" src="https://github.com/user-attachments/assets/1f6d89c0-9a8a-4385-8824-3266ab31e22a" />
 <img width="4507" height="1485" alt="Model 0-2026-04-02-164609" src="https://github.com/user-attachments/assets/18f73b95-33ef-4ff4-8e37-19a4d35bd731" />
 <img width="6513" height="1537" alt="Model 1-2026-04-02-164615" src="https://github.com/user-attachments/assets/2a921b13-5930-43b0-baa2-e6a75c90fe6b" />
@@ -19,14 +18,18 @@ b) is currently hosted using Colab Pro and exposed to the backend using an Ngrok
 
 ## Documentation & Links
 To learn more about how the models are fine-tuned and deployed, visit the following resources:
-* **Main Project README (Model 0)**: 
+* **Model 0 README**: 
     [View on GitHub](https://github.com/CSC392-CSC492-Building-AI-ML-systems/AutoDocs-Winter2026/blob/main/model0/Readme.md)
-* **Guide to Thinking Tokens**: 
+* **Guide to Thinking Tokens**:
     [View on GitHub](https://github.com/CSC392-CSC492-Building-AI-ML-systems/AutoDocs-Winter2026/blob/main/model0/thinking-tokens/guide_to_thinking.md)
 * **Training Dataset**: 
     [Jaiccc/model0_boundary_predict_streaming (Hugging Face)](https://huggingface.co/datasets/Jaiccc/model0_boundary_predict_streaming)
 * **Final Model Weights**: 
     [Jaiccc/model_0_streaming_timestamp (Hugging Face)](https://huggingface.co/Jaiccc/model_0_streaming_timestamp)
 
+To learn about the architecture, features, and setup of the webapp, visit:
+* **AutoDocs Webapp README**: 
+    [View on GitHub](https://github.com/CSC392-CSC492-Building-AI-ML-systems/AutoDocs-Winter2026/blob/main/autodocs-app/README.md)
+
 ### White Paper
-Read our full paper here. (to be added)
+Read our full paper here (To be added).
